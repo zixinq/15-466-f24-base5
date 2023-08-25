@@ -184,15 +184,6 @@ const show_scene_exe = maek.LINK([...show_scene_names, ...common_names], 'scenes
 //set the default target to the game (and copy the readme files):
 maek.TARGETS = [game_exe, show_meshes_exe, show_scene_exe, ...copies];
 
-//the '[targets =] RULE(targets, prerequisites[, recipe])' rule defines a Makefile-style task
-// targets: array of targets the task produces (can include both files and ':abstract targets')
-// prerequisites: array of targets the task waits on (can include both files and ':abstract targets')
-// recipe (optional): array of commands to run (where each command is an array [exe, arg1, arg0, ...])
-//returns targets: the targets the rule produces
-maek.RULE([':run'], [game_exe], [
-	[game_exe, '--some-command-line-option']
-]);
-
 //Note that tasks that produce ':abstract targets' are never cached.
 // This is similar to how .PHONY targets behave in make.
 
