@@ -36,7 +36,7 @@ struct PlayMode : Mode {
     
     struct Item {
         Scene::Transform *transform;
-        bool found = false;
+        int found = false;
         std::string name;
     };
     std::vector<Item> items;
