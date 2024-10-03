@@ -1,8 +1,8 @@
-# (TODO: your game's title)
+#  Garden Harvest
 
-Author: (TODO: your name)
+Author: Zixin Qiu
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design: It is the harvest season! Help the farmer to collect the vegetables and fruits in the garden.
 
 Screen Shot:
 
@@ -10,9 +10,9 @@ Screen Shot:
 
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+Press WSAD to move; Mouse to change the view; Space to collect items.
 
-Sources: (TODO: list a source URL for any assets you did not create yourself. Make sure you have a license for the asset.)
+Sources: 
 
 This game was built with [NEST](NEST.md).
 
