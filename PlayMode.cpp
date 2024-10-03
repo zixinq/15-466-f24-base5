@@ -13,23 +13,23 @@
 
 #include <random>
 
-GLuint phonebank_meshes_for_lit_color_texture_program = 0;
-Load< MeshBuffer > phonebank_meshes(LoadTagDefault, []() -> MeshBuffer const * {
+GLuint forest_meshes_for_lit_color_texture_program = 0;
+Load< MeshBuffer > forest_meshes(LoadTagDefault, []() -> MeshBuffer const * {
 	MeshBuffer const *ret = new MeshBuffer(data_path("forest.pnct"));
-	phonebank_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
+	forest_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 	return ret;
 });
 
-Load< Scene > phonebank_scene(LoadTagDefault, []() -> Scene const * {
+Load< Scene > forest_scene(LoadTagDefault, []() -> Scene const * {
 	return new Scene(data_path("forest.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
-		Mesh const &mesh = phonebank_meshes->lookup(mesh_name);
+		Mesh const &mesh = forest_meshes->lookup(mesh_name);
 
 		scene.drawables.emplace_back(transform);
 		Scene::Drawable &drawable = scene.drawables.back();
 
 		drawable.pipeline = lit_color_texture_program_pipeline;
 
-		drawable.pipeline.vao = phonebank_meshes_for_lit_color_texture_program;
+		drawable.pipeline.vao = forest_meshes_for_lit_color_texture_program;
 		drawable.pipeline.type = mesh.type;
 		drawable.pipeline.start = mesh.start;
 		drawable.pipeline.count = mesh.count;
@@ -38,13 +38,31 @@ Load< Scene > phonebank_scene(LoadTagDefault, []() -> Scene const * {
 });
 
 WalkMesh const *walkmesh = nullptr;
-Load< WalkMeshes > phonebank_walkmeshes(LoadTagDefault, []() -> WalkMeshes const * {
+Load< WalkMeshes > forest_walkmeshes(LoadTagDefault, []() -> WalkMeshes const * {
 	WalkMeshes *ret = new WalkMeshes(data_path("forest.w"));
 	walkmesh = &ret->lookup("WalkMesh");
 	return ret;
 });
 
-PlayMode::PlayMode() : scene(*phonebank_scene) {
+PlayMode::PlayMode() : scene(*forest_scene) {
+    for (auto& transform : scene.transforms) {
+        if (transform.name == "mushroom") {
+            mushroom = &transform;
+            items.push_back(Item{mushroom, false,"mushroom"});
+        }else if (transform.name == "orange") {
+            orange = &transform;
+            items.push_back(Item{orange, false,"orange"});
+        }
+        else if (transform.name == "carrot") {
+            carrot = &transform;
+            items.push_back(Item{orange, false,"carrot"});
+        }
+    }
+    
+    if (mushroom == nullptr) throw std::runtime_error("Mushrooom not found.");
+    if (orange == nullptr) throw std::runtime_error("Orange not found.");
+    if (carrot == nullptr) throw std::runtime_error("Carrot not found.");
+    
 	//create a player transform:
 	scene.transforms.emplace_back();
 	player.transform = &scene.transforms.back();
@@ -66,7 +84,7 @@ PlayMode::PlayMode() : scene(*phonebank_scene) {
 	//start player walking at nearest walk point:
 	player.at = walkmesh->nearest_walk_point(player.transform->position);
     
-    std::cout << player.transform->position.x << ", " << player.transform->position.y << ", " <<  player.transform->position.z << "\n";
+    
     std::cout << player.at.indices.x << ", " <<player.at.indices.y << ", " << player.at.indices.z << "\n";
 
 }
@@ -232,13 +250,33 @@ void PlayMode::update(float elapsed) {
 		camera->transform->position += move.x * right + move.y * forward;
 		*/
 	}
-
+    
+    
+    //find the item
+    if (space.pressed){
+        // check if the player is near an item
+        for (auto &item : items) {
+            if (!item.found) {
+                glm::vec3 item_distance = item.transform->position - player.transform->position;
+                //std::cout << item_distance.x << " " << item_distance.y << " " <<item_distance.z << "\n";
+                std::cout << glm::length(item_distance) << "\n";
+                if (glm::length(item_distance) < 3.0f) {
+                    item.found = true;
+                    item.transform->scale = glm::vec3(0.0f);
+                }
+            }
+        }
+    }
+    
+    
 	//reset button press counters:
 	left.downs = 0;
 	right.downs = 0;
 	up.downs = 0;
 	down.downs = 0;
     space.downs = 0;
+    //std::cout << player.transform->position.x << ", " << player.transform->position.y << ", " <<  player.transform->position.z << "\n";
+    
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -294,6 +332,22 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+
+        float text_height = -0.9f;
+
+        for (const auto &item : items) {
+            std::string item_text = "";
+            if(item.found){
+                item_text = item.name + ": 1";
+            }else{
+                item_text = item.name + ": 0";
+            }
+            lines.draw_text(item_text,
+                glm::vec3(-aspect + 0.1f * H, text_height, 0.0f),
+                glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+                glm::u8vec4(0xff, 0xff, 0xff, 0xff));
+            text_height += 0.1f;
+        }
 	}
 	GL_ERRORS();
 }

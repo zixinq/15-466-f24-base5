@@ -24,9 +24,22 @@ struct PlayMode : Mode {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
 	} left, right, down, up, space;
+    
+   
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
+    
+    Scene::Transform *mushroom = nullptr;
+    Scene::Transform *orange = nullptr;
+    Scene::Transform *carrot = nullptr;
+    
+    struct Item {
+        Scene::Transform *transform;
+        bool found = false;
+        std::string name;
+    };
+    std::vector<Item> items;
 
 	//player info:
 	struct Player {
